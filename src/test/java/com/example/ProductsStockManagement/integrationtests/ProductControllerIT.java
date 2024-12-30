@@ -15,8 +15,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.util.NoSuchElementException;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = ProductsStockManagementApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -90,6 +91,59 @@ public class ProductControllerIT {
         assertEquals("[\"Price can't be null\"]", response.getBody().lines().findFirst().get());
         assertEquals(400, response.getStatusCode().value());
     }
+
+    @Test
+    public void testGetAllProducts()  {
+        Product product =new Product("product1","sku1",100);
+
+        HttpEntity<Product> entity = new HttpEntity<Product>(product, headers);
+
+        restTemplate.exchange(
+                createURLWithPort("/products"),
+                HttpMethod.POST, entity, String.class);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                createURLWithPort("/products"),
+                HttpMethod.GET,entity, String.class);
+        assertNotNull(response.getBody());
+        assertEquals("[{\"id\":1,\"name\":\"product1\",\"sku\":\"sku1\",\"price\":100}]", response.getBody());
+    }
+
+    @Test
+    public void testGetProductById()  {
+        Product product =new Product("product1","sku1",100);
+
+        HttpEntity<Product> entity = new HttpEntity<Product>(product, headers);
+
+        restTemplate.exchange(
+                createURLWithPort("/products"),
+                HttpMethod.POST, entity, String.class);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                createURLWithPort("/products/1"),
+                HttpMethod.GET,entity, String.class);
+        assertNotNull(response.getBody());
+        assertEquals("[{\"id\":1,\"name\":\"product1\",\"sku\":\"sku1\",\"price\":100}]", response.getBody());
+    }
+
+    @Test
+    public void testThrowsExceptionWhenProductNotFound() throws JSONException {
+        Product product =new Product("product1","sku1",100);
+
+        HttpEntity<Product> entity = new HttpEntity<Product>(product, headers);
+
+        restTemplate.exchange(
+                createURLWithPort("/products"),
+                HttpMethod.POST, entity, String.class);
+
+        assertThrows(NoSuchElementException.class,
+                () -> {
+                    restTemplate.exchange(
+                            createURLWithPort("/products/3"),
+                            HttpMethod.GET,entity, String.class);
+                });
+    }
+
 
     private String createURLWithPort(String uri) {
         return "http://localhost:" + port + uri;

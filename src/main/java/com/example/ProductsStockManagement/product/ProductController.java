@@ -9,8 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
+import javax.print.DocFlavor;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/products")
@@ -25,9 +28,15 @@ public class ProductController {
         return new ResponseEntity<>(savedProduct,HttpStatus.OK);
     }
 
-    @GetMapping
-    public ResponseEntity<String> getProducts(){
-        return new ResponseEntity<>("Hello",HttpStatus.OK);
+    @GetMapping(value = {"","/{id}"})
+    public ResponseEntity<List<Product>> getProducts(@PathVariable(required = false) Optional<Integer> id){
+        List<Product> allProducts = new ArrayList<>();
+        if(id.isPresent()){
+            allProducts.add(productService.findById(id.get()));
+        }else{
+            allProducts = productService.getAllProducts();
+        }
+        return new ResponseEntity<>(allProducts,HttpStatus.OK);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -39,5 +48,11 @@ public class ProductController {
                 .toList();
 
         return  new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<String> handleNoSuchElementException(NoSuchElementException exception){
+        String errorMessage = exception.getMessage();
+        return new ResponseEntity<>(errorMessage,HttpStatus.NOT_FOUND);
     }
 }
