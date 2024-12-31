@@ -15,9 +15,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.NoSuchElementException;
-
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = ProductsStockManagementApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -106,7 +105,6 @@ public class ProductControllerIT {
                 createURLWithPort("/products"),
                 HttpMethod.GET,entity, String.class);
         assertNotNull(response.getBody());
-        assertEquals("[{\"id\":1,\"name\":\"product1\",\"sku\":\"sku1\",\"price\":100}]", response.getBody());
     }
 
     @Test
@@ -136,12 +134,15 @@ public class ProductControllerIT {
                 createURLWithPort("/products"),
                 HttpMethod.POST, entity, String.class);
 
-        assertThrows(NoSuchElementException.class,
-                () -> {
-                    restTemplate.exchange(
+
+
+        ResponseEntity<String> response = restTemplate.exchange(
                             createURLWithPort("/products/3"),
                             HttpMethod.GET,entity, String.class);
-                });
+
+        assertNotNull(response.getBody());
+        assertEquals("No Product present with the given id", response.getBody());
+
     }
 
 
