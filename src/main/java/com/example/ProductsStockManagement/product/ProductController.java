@@ -1,6 +1,8 @@
 package com.example.ProductsStockManagement.product;
 
 
+import com.example.ProductsStockManagement.product.exceptions.InvalidInputException;
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -39,20 +41,10 @@ public class ProductController {
         return new ResponseEntity<>(allProducts,HttpStatus.OK);
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<List<String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception){
-        List<String> errors = exception.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                .toList();
-
-        return  new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    @PutMapping("/{id}")
+    public ResponseEntity<Product> updateProduct(@PathVariable Optional<Integer> id, @RequestBody Product product){
+        Product updatedProduct = productService.updateProduct(id, product);
+        return  new ResponseEntity<>(updatedProduct, HttpStatus.OK);
     }
 
-    @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<String> handleNoSuchElementException(NoSuchElementException exception){
-        String errorMessage = exception.getMessage();
-        return new ResponseEntity<>(errorMessage,HttpStatus.NOT_FOUND);
-    }
 }
