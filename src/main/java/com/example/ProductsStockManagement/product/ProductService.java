@@ -35,4 +35,11 @@ public class ProductService {
         productId.orElseThrow(() -> new NoSuchElementException("No Product is present with the given id"));
         return productRepository.save(product);
     }
+
+    public void deleteProduct(Integer productId) {
+        if(productRepository.existsById(productId))
+          productRepository.deleteById(productId);
+        else
+            throw new NoSuchElementException("No product exist with the given id");
+    }
 }

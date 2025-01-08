@@ -2,7 +2,6 @@ package com.example.ProductsStockManagement.integrationtests;
 
 import com.example.ProductsStockManagement.ProductsStockManagementApplication;
 import com.example.ProductsStockManagement.product.Product;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
@@ -156,7 +155,7 @@ public class ProductControllerIT {
                 createURLWithPort("/products"),
                 HttpMethod.POST, entity, String.class);
 
-        Integer id = (Integer) new JSONObject(response.getBody()).get("id");
+        Integer id = (Integer) (new JSONObject(response.getBody()).get("id"));
         product.setId(id);
         product.setName("product2");
         product.setSku("qwe");
@@ -175,8 +174,29 @@ public class ProductControllerIT {
         assertEquals("qwe", responseObject.get("sku"));
         assertEquals(500, responseObject.get("price"));
 
+        response = restTemplate.exchange(
+                createURLWithPort("/products/1"),
+                HttpMethod.DELETE, new HttpEntity<>(null,headers), String.class);
+
+        assertEquals(200, response.getStatusCode().value());
+
+
     }
 
+    @Test
+    public void testDeleteProduct() throws JSONException{
+
+        Product product =new Product("product1","sku1",120);
+
+        HttpEntity<Product> entity = new HttpEntity<Product>(product, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                createURLWithPort("/products"),
+                HttpMethod.POST, entity, String.class);
+
+        Integer id = (Integer) new JSONObject(response.getBody()).get("id");
+
+    }
     private String createURLWithPort(String uri) {
         return "http://localhost:" + port + uri;
     }
